@@ -32,6 +32,14 @@ class CarControllerParams:
         self.STEER_DRIVER_ALLOWANCE = 250  # Proportional increase
         self.STEER_DRIVER_MULTIPLIER = 2   # Keep same as other CANFD
         self.STEER_THRESHOLD = 250       # Proportional increase
+      elif CP.carFingerprint in (CAR.KIA_EV6, CAR.HYUNDAI_IONIQ_5, CAR.HYUNDAI_IONIQ_6, CAR.KIA_SPORTAGE_5TH_GEN, CAR.GENESIS_GV80_2021):
+        # Increase torque on capable CAN-FD platforms
+        self.STEER_MAX = 360
+        self.STEER_DRIVER_ALLOWANCE = 250
+        self.STEER_DRIVER_MULTIPLIER = 2
+        self.STEER_THRESHOLD = 250
+        self.STEER_DELTA_UP = 3
+        self.STEER_DELTA_DOWN = 7
       else:
         self.STEER_MAX = 270
         self.STEER_DRIVER_ALLOWANCE = 250
@@ -608,7 +616,7 @@ class CAR(Platforms):
   GENESIS_GV80_2021 = HyundaiCanFDPlatformConfig(
     [HyundaiCarDocs("Genesis GV80 (with HDA II) 2021", "Highway Driving Assist II", car_parts=CarParts.common([CarHarness.hyundai_q]))],
     CarSpecs(mass=2258, wheelbase=2.95, steerRatio=14.14),
-    flags=HyundaiFlags.RADAR_SCC | HyundaiFlags.CANFD_LKA_STEERING | HyundaiFlags.SEND_LFA,
+    flags=HyundaiFlags.RADAR_SCC | HyundaiFlags.CANFD_CAMERA_SCC | HyundaiFlags.CANFD_LKA_STEERING | HyundaiFlags.SEND_LFA,
   )
 
 
