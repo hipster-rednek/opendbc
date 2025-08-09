@@ -52,7 +52,8 @@ def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_torque,
   lkas_values["LKA_AVAILABLE"] = 0
 
   lfa_values = copy.copy(common_values)
-  lfa_values["NEW_SIGNAL_1"] = 0 if not lkasEnabled else 3 if left_lane_visible and right_lane_visible else 1 if left_lane_visible else 2 if right_lane_visible else 0
+  # HUD lane icons: 0=off, 1=left, 2=right, 3=both
+  lfa_values["NEW_SIGNAL_1"] = 0 if not lkasEnabled else (3 if left_lane_visible and right_lane_visible else (1 if left_lane_visible else (2 if right_lane_visible else 0)))
 
   ret = []
   if CP.flags & HyundaiFlags.CANFD_LKA_STEERING:

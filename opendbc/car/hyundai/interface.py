@@ -117,6 +117,11 @@ class CarInterface(CarInterfaceBase):
     if candidate == CAR.KIA_CARNIVAL_4TH_GEN:
       ret.safetyConfigs[-1].safetyParam |= HyundaiSafetyFlags.CARNIVAL_STEERING_LIMITS.value
 
+    # GV80_2021: enable higher torque and blinkers on CAN-FD
+    if ret.flags & HyundaiFlags.CANFD and candidate == CAR.GENESIS_GV80_2021:
+      ret.safetyConfigs[-1].safetyParam |= HyundaiSafetyFlags.CARNIVAL_STEERING_LIMITS.value
+      ret.flags |= HyundaiFlags.ENABLE_BLINKERS.value
+
     if ret.flags & HyundaiFlags.ALT_LIMITS:
       ret.safetyConfigs[-1].safetyParam |= HyundaiSafetyFlags.ALT_LIMITS.value
 

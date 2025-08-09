@@ -173,8 +173,8 @@ class CarController(CarControllerBase):
       can_sends.append(hyundaicanfd.create_suppress_lfa(self.packer, self.CAN, CS.lfa_block_msg,
                                                         self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT))
 
-    # LFA and HDA icons
-    if self.frame % 5 == 0 and (not lka_steering or lka_steering_long):
+    # LFA and HDA icons: always send on CANFD at 20 Hz
+    if self.frame % 5 == 0:
       can_sends.append(hyundaicanfd.create_lfahda_cluster(self.packer, self.CAN, CC.enabled, CS.lkasEnabled, CC.latActive, CS.hda_icon, self.frame))
 
     # blinkers
