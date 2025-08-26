@@ -99,8 +99,9 @@ class CarController(CarControllerBase, EsccCarController, LongitudinalController
     # *** common hyundai stuff ***
 
     # tester present - w/ no response (keeps relevant ECU disabled)
+    send_longitudinal_tester = self.CP.openpilotLongitudinalControl or self.mads.enable_mads
     if self.frame % 100 == 0 and not ((self.CP.flags & HyundaiFlags.CANFD_CAMERA_SCC) or self.ESCC.enabled) and \
-            self.CP.openpilotLongitudinalControl:
+            send_longitudinal_tester:
       # for longitudinal control, either radar or ADAS driving ECU
       addr, bus = 0x7d0, self.CAN.ECAN if self.CP.flags & HyundaiFlags.CANFD else 0
       if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING.value:
@@ -141,7 +142,8 @@ class CarController(CarControllerBase, EsccCarController, LongitudinalController
                                               self.lkas_icon))
 
     # Button messages
-    if not self.CP.openpilotLongitudinalControl:
+    # Don't send button messages if we're controlling longitudinally (either via openpilot or MADS)
+    if not (self.CP.openpilotLongitudinalControl or self.mads.enable_mads):
       if CC.cruiseControl.cancel:
         can_sends.append(hyundaican.create_clu11(self.packer, self.frame, CS.clu11, Buttons.CANCEL, self.CP))
       elif CC.cruiseControl.resume:
@@ -152,7 +154,10 @@ class CarController(CarControllerBase, EsccCarController, LongitudinalController
           if (self.frame - self.last_button_frame) * DT_CTRL >= 0.15:
             self.last_button_frame = self.frame
 
-    if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:
+    # Send longitudinal control if openpilot longitudinal is enabled OR if MADS is enabled
+    send_longitudinal = self.CP.openpilotLongitudinalControl or self.mads.enable_mads
+    
+    if self.frame % 2 == 0 and send_longitudinal:
       # TODO: unclear if this is needed
       jerk = 3.0 if actuators.longControlState == LongCtrlState.pid else 1.0
       use_fca = self.CP.flags & HyundaiFlags.USE_FCA.value
@@ -166,11 +171,11 @@ class CarController(CarControllerBase, EsccCarController, LongitudinalController
       can_sends.append(hyundaican.create_lfahda_mfc(self.packer, CC.enabled, self.lfa_icon))
 
     # 5 Hz ACC options
-    if self.frame % 20 == 0 and self.CP.openpilotLongitudinalControl:
+    if self.frame % 20 == 0 and send_longitudinal:
       can_sends.extend(hyundaican.create_acc_opt(self.packer, self.CP, self.ESCC))
 
     # 2 Hz front radar options
-    if self.frame % 50 == 0 and self.CP.openpilotLongitudinalControl and not self.ESCC.enabled:
+    if self.frame % 50 == 0 and send_longitudinal and not self.ESCC.enabled:
       can_sends.append(hyundaican.create_frt_radar_opt(self.packer))
 
     return can_sends
@@ -197,7 +202,10 @@ class CarController(CarControllerBase, EsccCarController, LongitudinalController
     if lka_steering and self.CP.flags & HyundaiFlags.ENABLE_BLINKERS:
       can_sends.extend(hyundaicanfd.create_spas_messages(self.packer, self.CAN, CC.leftBlinker, CC.rightBlinker))
 
-    if self.CP.openpilotLongitudinalControl:
+    # Send longitudinal control if openpilot longitudinal is enabled OR if MADS is enabled
+    send_longitudinal = self.CP.openpilotLongitudinalControl or self.mads.enable_mads
+    
+    if send_longitudinal:
       if lka_steering:
         can_sends.extend(hyundaicanfd.create_adrv_messages(self.packer, self.CAN, self.frame))
       else:
