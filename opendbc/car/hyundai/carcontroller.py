@@ -161,7 +161,16 @@ class CarController(CarControllerBase, EsccCarController, LongitudinalController
       # TODO: unclear if this is needed
       jerk = 3.0 if actuators.longControlState == LongCtrlState.pid else 1.0
       use_fca = self.CP.flags & HyundaiFlags.USE_FCA.value
-      can_sends.extend(hyundaican.create_acc_commands(self.packer, CC.enabled, accel, jerk, int(self.frame / 2),
+      # When MADS is enabled for longitudinal, we need to send commands even if CC.enabled is False
+      # This allows MADS to take over longitudinal control via LFA button
+      enabled_for_control = CC.enabled or (self.mads.enable_mads and CS.main_cruise_enabled)
+      
+      # Safety check: Log if we're supposed to be controlling but aren't actually enabled
+      if send_longitudinal and not enabled_for_control and self.frame % 100 == 0:
+        print(f"[WARN] Longitudinal control expected but not active: send_long={send_longitudinal}, "
+              f"CC.enabled={CC.enabled}, mads.enable={self.mads.enable_mads}, main_cruise={CS.main_cruise_enabled}")
+      
+      can_sends.extend(hyundaican.create_acc_commands(self.packer, enabled_for_control, accel, jerk, int(self.frame / 2),
                                                       hud_control, set_speed_in_units, stopping,
                                                       CC.cruiseControl.override, use_fca, self.CP,
                                                       CS.main_cruise_enabled, self.tuning, self.ESCC))
@@ -211,7 +220,15 @@ class CarController(CarControllerBase, EsccCarController, LongitudinalController
       else:
         can_sends.extend(hyundaicanfd.create_fca_warning_light(self.packer, self.CAN, self.frame))
       if self.frame % 2 == 0:
-        can_sends.append(hyundaicanfd.create_acc_control(self.packer, self.CAN, CC.enabled, self.accel_last, accel, stopping, CC.cruiseControl.override,
+        # When MADS is enabled for longitudinal, we need to send commands even if CC.enabled is False
+        enabled_for_control = CC.enabled or (self.mads.enable_mads and CS.main_cruise_enabled)
+        
+        # Safety check: Log if we're supposed to be controlling but aren't actually enabled
+        if send_longitudinal and not enabled_for_control and self.frame % 100 == 0:
+          print(f"[WARN CANFD] Longitudinal control expected but not active: send_long={send_longitudinal}, "
+                f"CC.enabled={CC.enabled}, mads.enable={self.mads.enable_mads}, main_cruise={CS.main_cruise_enabled}")
+        
+        can_sends.append(hyundaicanfd.create_acc_control(self.packer, self.CAN, enabled_for_control, self.accel_last, accel, stopping, CC.cruiseControl.override,
                                                          set_speed_in_units, hud_control, CS.main_cruise_enabled, self.tuning))
         self.accel_last = accel
     else:

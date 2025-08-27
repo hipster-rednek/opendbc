@@ -797,6 +797,16 @@
     ],
     "package": "Highway Driving Assist II"
   },
+  "Genesis GV80 2021": {
+    "platform": "GENESIS_GV80_2021",
+    "make": "Genesis",
+    "brand": "hyundai",
+    "model": "GV80",
+    "year": [
+      "2021"
+    ],
+    "package": "Highway Driving Assist II"
+  },
   "Genesis GV80 2023": {
     "platform": "GENESIS_GV80",
     "make": "Genesis",
