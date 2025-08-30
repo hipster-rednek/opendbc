@@ -6,6 +6,7 @@ from opendbc.car.hyundai.values import HyundaiFlags, CAR, DBC, \
 from opendbc.car.hyundai.radar_interface import RADAR_START_ADDR
 from opendbc.car.interfaces import CarInterfaceBase
 from opendbc.car.disable_ecu import disable_ecu
+from opendbc.safety import ALTERNATIVE_EXPERIENCE
 from opendbc.car.hyundai.carcontroller import CarController
 from opendbc.car.hyundai.carstate import CarState
 from opendbc.car.hyundai.radar_interface import RadarInterface
@@ -137,7 +138,9 @@ class CarInterface(CarInterfaceBase):
     ret.startAccel = 1.0
     ret.longitudinalActuatorDelay = 0.5
 
-    if ret.openpilotLongitudinalControl:
+    # Enable LONG safety flag for both normal longitudinal control and MADS longitudinal
+    mads_enabled = bool(ret.alternativeExperience & ALTERNATIVE_EXPERIENCE.ENABLE_MADS)
+    if ret.openpilotLongitudinalControl or mads_enabled:
       ret.safetyConfigs[-1].safetyParam |= HyundaiSafetyFlags.LONG.value
     if ret.flags & HyundaiFlags.HYBRID:
       ret.safetyConfigs[-1].safetyParam |= HyundaiSafetyFlags.HYBRID_GAS.value
