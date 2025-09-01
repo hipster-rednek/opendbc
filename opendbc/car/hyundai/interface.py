@@ -213,11 +213,21 @@ class CarInterface(CarInterfaceBase):
       addr, bus = 0x7d0, CanBus(CP).ECAN if CP.flags & HyundaiFlags.CANFD else 0
       if CP.flags & HyundaiFlags.CANFD_LKA_STEERING.value:
         addr, bus = 0x730, CanBus(CP).ECAN
+      
+      # For cars with CANFD_NO_RADAR_DISABLE, try using bus 129 which bypasses ICU gateway
+      # This bus has direct access to radar ECUs without UDS blocking
+      if CP.flags & HyundaiFlags.CANFD_NO_RADAR_DISABLE.value:
+        bus = 129  # Use clean bus that bypasses ICU gateway
+      
       disable_ecu(can_recv, can_send, bus=bus, addr=addr, com_cont_req=communication_control)
 
     # for blinkers
     if CP.flags & HyundaiFlags.ENABLE_BLINKERS:
-      disable_ecu(can_recv, can_send, bus=CanBus(CP).ECAN, addr=0x7B1, com_cont_req=communication_control)
+      blinker_bus = CanBus(CP).ECAN
+      # For cars with CANFD_NO_RADAR_DISABLE, try using bus 129 which bypasses ICU gateway
+      if CP.flags & HyundaiFlags.CANFD_NO_RADAR_DISABLE.value:
+        blinker_bus = 129  # Use clean bus that bypasses ICU gateway
+      disable_ecu(can_recv, can_send, bus=blinker_bus, addr=0x7B1, com_cont_req=communication_control)
 
   @staticmethod
   def deinit(CP, can_recv, can_send):
