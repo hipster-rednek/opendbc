@@ -270,6 +270,13 @@ static safety_config hyundai_canfd_init(uint16_t param) {
     HYUNDAI_CANFD_SCC_CONTROL_COMMON_TX_MSGS(0, (longitudinal)) \
     {0x160, 0, 16, .check_relay = (longitudinal)}, /* ADRV_0x160 */ \
 
+  // For cars with RADAR_ICU, add UDS commands on bus 129 (clean bus that bypasses ICU gateway)
+  static const CanMsg HYUNDAI_CANFD_RADAR_ICU_TX_MSGS[] = {
+    {0x7D0, 129, 8, .check_relay = false},  // tester present for radar ECU disable
+    {0x730, 129, 8, .check_relay = false},  // tester present for ADAS ECU disable  
+    {0x7B1, 129, 8, .check_relay = false},  // tester present for blinker ECU disable
+  };
+
   hyundai_common_init(param);
 
   gen_crc_lookup_table_16(0x1021, hyundai_canfd_crc_lut);
@@ -375,6 +382,11 @@ static safety_config hyundai_canfd_init(uint16_t param) {
         SET_RX_CHECKS(hyundai_canfd_rx_checks, ret);
       }
     }
+  }
+
+  // Add RADAR_ICU UDS messages on bus 129 if flag is set
+  if (hyundai_radar_icu) {
+    SET_TX_MSGS(HYUNDAI_CANFD_RADAR_ICU_TX_MSGS, ret);
   }
 
   return ret;

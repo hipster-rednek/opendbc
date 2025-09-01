@@ -114,7 +114,7 @@ class HyundaiFlags(IntFlag):
   UNSUPPORTED_LONGITUDINAL = 2 ** 19
 
   # These CAN FD cars have ICU gateway that blocks UDS commands on standard buses
-  # UDS radar disable will fail, but MADS can still provide longitudinal control
+  # Panda safety model allows UDS commands on bus 129 which bypasses ICU gateway
   RADAR_ICU = 2 ** 20
 
   CLUSTER_GEARS = 2 ** 21
@@ -850,7 +850,7 @@ CAN_GEARS = {
 CANFD_CAR = CAR.with_flags(HyundaiFlags.CANFD)
 CANFD_RADAR_SCC_CAR = CAR.with_flags(HyundaiFlags.RADAR_SCC)  # TODO: merge with UNSUPPORTED_LONGITUDINAL_CAR
 
-CANFD_UNSUPPORTED_LONGITUDINAL_CAR = CAR.with_flags(HyundaiFlags.RADAR_ICU)  # Cars with ICU gateway that blocks UDS radar disable
+CANFD_UNSUPPORTED_LONGITUDINAL_CAR = CAR.with_flags(HyundaiFlags.RADAR_ICU)  # Cars with ICU gateway that need bus 129 for UDS
 
 CAMERA_SCC_CAR = CAR.with_flags(HyundaiFlags.CAMERA_SCC)
 
