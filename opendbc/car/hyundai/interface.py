@@ -214,19 +214,17 @@ class CarInterface(CarInterfaceBase):
       if CP.flags & HyundaiFlags.CANFD_LKA_STEERING.value:
         addr, bus = 0x730, CanBus(CP).ECAN
       
-      # For cars with RADAR_ICU, use bus 129 which bypasses ICU gateway
-      # This bus has direct access to radar ECUs without UDS blocking
-      if CP.flags & HyundaiFlags.RADAR_ICU.value:
-        bus = 129  # Use clean bus that bypasses ICU gateway
+      # For cars with RADAR_ICU, UDS commands are blocked by ICU gateway
+      # Panda safety model doesn't allow transmission on bus 129 (receipt-only)
+      # Keep using standard bus - UDS will fail but MADS can still work
       
       disable_ecu(can_recv, can_send, bus=bus, addr=addr, com_cont_req=communication_control)
 
     # for blinkers
     if CP.flags & HyundaiFlags.ENABLE_BLINKERS:
       blinker_bus = CanBus(CP).ECAN
-      # For cars with RADAR_ICU, use bus 129 which bypasses ICU gateway
-      if CP.flags & HyundaiFlags.RADAR_ICU.value:
-        blinker_bus = 129  # Use clean bus that bypasses ICU gateway
+      # For cars with RADAR_ICU, UDS commands are blocked by ICU gateway
+      # Panda safety model doesn't allow transmission on bus 129 (receipt-only)
       disable_ecu(can_recv, can_send, bus=blinker_bus, addr=0x7B1, com_cont_req=communication_control)
 
   @staticmethod
