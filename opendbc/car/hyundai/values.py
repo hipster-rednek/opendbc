@@ -113,9 +113,9 @@ class HyundaiFlags(IntFlag):
   # these cars have not been verified to work with longitudinal yet - radar disable, sending correct messages, etc.
   UNSUPPORTED_LONGITUDINAL = 2 ** 19
 
-  # These CAN FD cars do not accept communication control to disable the ADAS ECU,
-  # responds with 0x7F2822 - 'conditions not correct'
-  CANFD_NO_RADAR_DISABLE = 2 ** 20
+  # These CAN FD cars have ICU gateway that blocks UDS commands on standard buses
+  # but have direct access via clean bus (129) that bypasses ICU gateway
+  RADAR_ICU = 2 ** 20
 
   CLUSTER_GEARS = 2 ** 21
   TCU_GEARS = 2 ** 22
@@ -271,7 +271,7 @@ class CAR(Platforms):
     [HyundaiCarDocs("Hyundai Kona Electric (with HDA II, Korea only) 2023", video="https://www.youtube.com/watch?v=U2fOCmcQ8hw",
                     car_parts=CarParts.common([CarHarness.hyundai_r]))],
     CarSpecs(mass=1740, wheelbase=2.66, steerRatio=13.6, tireStiffnessFactor=0.385),
-    flags=HyundaiFlags.EV | HyundaiFlags.CANFD_NO_RADAR_DISABLE,
+    flags=HyundaiFlags.EV | HyundaiFlags.RADAR_ICU,
   )
   HYUNDAI_KONA_HEV = HyundaiPlatformConfig(
     [HyundaiCarDocs("Hyundai Kona Hybrid 2020", car_parts=CarParts.common([CarHarness.hyundai_i]))],  # TODO: check packages,
@@ -358,7 +358,7 @@ class CAR(Platforms):
   HYUNDAI_IONIQ_6 = HyundaiCanFDPlatformConfig(
     [HyundaiCarDocs("Hyundai Ioniq 6 (with HDA II) 2023-24", "Highway Driving Assist II", car_parts=CarParts.common([CarHarness.hyundai_p]))],
     HYUNDAI_IONIQ_5.specs,
-    flags=HyundaiFlags.EV | HyundaiFlags.CANFD_NO_RADAR_DISABLE,
+    flags=HyundaiFlags.EV | HyundaiFlags.RADAR_ICU,
   )
   HYUNDAI_TUCSON_4TH_GEN = HyundaiCanFDPlatformConfig(
     [
@@ -601,7 +601,7 @@ class CAR(Platforms):
   GENESIS_GV80_2021 = HyundaiCanFDPlatformConfig(
     [HyundaiCarDocs("Genesis GV80 (with HDA II) 2021", "Highway Driving Assist II", car_parts=CarParts.common([CarHarness.hyundai_q]))],
     CarSpecs(mass=2258, wheelbase=2.95, steerRatio=14.14),
-    flags=HyundaiFlags.RADAR_SCC | HyundaiFlags.CANFD_LKA_STEERING | HyundaiFlags.SEND_LFA | HyundaiFlags.CANFD_NO_RADAR_DISABLE,
+    flags=HyundaiFlags.RADAR_SCC | HyundaiFlags.CANFD_LKA_STEERING | HyundaiFlags.SEND_LFA | HyundaiFlags.RADAR_ICU,
   )
 
   # port extensions
@@ -850,7 +850,7 @@ CAN_GEARS = {
 CANFD_CAR = CAR.with_flags(HyundaiFlags.CANFD)
 CANFD_RADAR_SCC_CAR = CAR.with_flags(HyundaiFlags.RADAR_SCC)  # TODO: merge with UNSUPPORTED_LONGITUDINAL_CAR
 
-CANFD_UNSUPPORTED_LONGITUDINAL_CAR = CAR.with_flags(HyundaiFlags.CANFD_NO_RADAR_DISABLE)  # TODO: merge with UNSUPPORTED_LONGITUDINAL_CAR
+CANFD_UNSUPPORTED_LONGITUDINAL_CAR = CAR.with_flags(HyundaiFlags.RADAR_ICU)  # Cars with ICU gateway that need special bus handling
 
 CAMERA_SCC_CAR = CAR.with_flags(HyundaiFlags.CAMERA_SCC)
 
@@ -861,7 +861,7 @@ EV_CAR = CAR.with_flags(HyundaiFlags.EV)
 LEGACY_SAFETY_MODE_CAR = CAR.with_flags(HyundaiFlags.LEGACY)
 
 # TODO: another PR with (HyundaiFlags.LEGACY | HyundaiFlags.UNSUPPORTED_LONGITUDINAL | HyundaiFlags.CAMERA_SCC |
-#       HyundaiFlags.CANFD_RADAR_SCC | HyundaiFlags.CANFD_NO_RADAR_DISABLE | )
+#       HyundaiFlags.CANFD_RADAR_SCC | HyundaiFlags.RADAR_ICU | )
 UNSUPPORTED_LONGITUDINAL_CAR = CAR.with_flags(HyundaiFlags.LEGACY) | CAR.with_flags(HyundaiFlags.UNSUPPORTED_LONGITUDINAL)
 
 # port extensions

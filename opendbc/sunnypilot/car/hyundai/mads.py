@@ -92,10 +92,10 @@ class MadsCarState(MadsCarStateBase):
     else:
       self.main_cruise_enabled = True
 
-    # For cars with CANFD_NO_RADAR_DISABLE, cruiseState.available is always False
+    # For cars with RADAR_ICU, cruiseState.available is always False
     # because MainMode_ACC is never 1. Allow MADS to work by checking if we have
     # longitudinal control capability through MADS instead of relying on cruiseState.available
-    if self.CP.flags & HyundaiFlags.CANFD_NO_RADAR_DISABLE:
+    if self.CP.flags & HyundaiFlags.RADAR_ICU:
       # For these cars, allow MADS longitudinal control even if cruise is not "available"
       # The radar stays active, but MADS can still send gas/brake commands
       return self.main_cruise_enabled
