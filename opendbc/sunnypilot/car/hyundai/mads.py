@@ -9,9 +9,7 @@ from enum import StrEnum
 from collections import namedtuple
 
 from opendbc.car import Bus, DT_CTRL, structs
-from opendbc.car.hyundai.values import CAR
-
-from opendbc.car.hyundai.values import HyundaiFlags
+from opendbc.car.hyundai.values import CAR, HyundaiFlags
 from opendbc.sunnypilot.car.hyundai.values import HyundaiFlagsSP
 from opendbc.sunnypilot.mads_base import MadsCarStateBase
 from opendbc.can.parser import CANParser
@@ -94,7 +92,15 @@ class MadsCarState(MadsCarStateBase):
     else:
       self.main_cruise_enabled = True
 
-    return self.main_cruise_enabled if ret.cruiseState.available else False
+    # For cars with CANFD_NO_RADAR_DISABLE, cruiseState.available is always False
+    # because MainMode_ACC is never 1. Allow MADS to work by checking if we have
+    # longitudinal control capability through MADS instead of relying on cruiseState.available
+    if self.CP.flags & HyundaiFlags.CANFD_NO_RADAR_DISABLE:
+      # For these cars, allow MADS longitudinal control even if cruise is not "available"
+      # The radar stays active, but MADS can still send gas/brake commands
+      return self.main_cruise_enabled
+    else:
+      return self.main_cruise_enabled if ret.cruiseState.available else False
 
   def update_mads(self, ret: structs.CarState, can_parsers: dict[StrEnum, CANParser]) -> None:
     pass
