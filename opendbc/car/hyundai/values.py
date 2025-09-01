@@ -850,7 +850,7 @@ CAN_GEARS = {
 CANFD_CAR = CAR.with_flags(HyundaiFlags.CANFD)
 CANFD_RADAR_SCC_CAR = CAR.with_flags(HyundaiFlags.RADAR_SCC)  # TODO: merge with UNSUPPORTED_LONGITUDINAL_CAR
 
-CANFD_UNSUPPORTED_LONGITUDINAL_CAR = CAR.with_flags(HyundaiFlags.RADAR_ICU)  # Cars with ICU gateway that need bus 129 for UDS
+CANFD_UNSUPPORTED_LONGITUDINAL_CAR = CAR.with_flags(HyundaiFlags.LEGACY)  # Only legacy cars are unsupported, RADAR_ICU cars now supported
 
 CAMERA_SCC_CAR = CAR.with_flags(HyundaiFlags.CAMERA_SCC)
 
